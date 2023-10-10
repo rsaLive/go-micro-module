@@ -1,0 +1,77 @@
+dubbo:
+  metrics:
+    enable: true # default is true
+    path: /metrics # default is /metrics
+    port: 9092 # default is 9090
+    namespace: dubboMeal # default is dubbo 作为数据上报 metrics 的前缀
+  registries:
+    demoZK:
+      protocol: zookeeper
+      timeout: 10s
+      address: 127.0.0.1:2181
+  protocols:
+    triple: #triple
+      name: tri
+      port: 21001
+  consumer:
+    filter: tracing
+    request-timeout: 30s
+    references:
+      AccountClientImpl:
+        protocol: tri
+        interface: com.fontree.microservices.meal.account
+        group: meal
+  provider:
+    filter: tracing
+    services:
+      OrderProvider:
+        interface: com.fontree.microservices.meal.order
+        retries: 0
+        group: meal
+        filter: tps,tracing
+        tps.limiter: method-service
+        tps.limit.strategy: fixedWindow
+        tps.limit.rejected.handler: DefaultValueHandler
+        tps.limit.interval: 1000 # 间隔时间
+        tps.limit.rate: 30  # 间隔时间内次数
+        warmup: 100  #预热时间
+  logger:
+    zap-config:
+      level: info # 日志级别
+      development: false
+      disableCaller: false
+      disableStacktrace: false
+      encoding: "json"
+      # zap encoder 配置
+      encoderConfig:
+        messageKey: "message"
+        levelKey: "level"
+        timeKey: "time"
+        nameKey: "logger"
+        callerKey: "caller"
+        stacktraceKey: "stacktrace"
+        lineEnding: ""
+        levelEncoder: "capitalColor"
+        timeEncoder: "iso8601"
+        durationEncoder: "seconds"
+        callerEncoder: "short"
+        nameEncoder: ""
+        EncodeTime: zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000"),
+        EncodeDuration: zapcore.SecondsDurationEncoder,
+      outputPaths:
+        - "stderr"
+      errorOutputPaths:
+        - "stderr"
+    lumberjack-config:
+      # 写日志的文件名称
+      filename: "runtime/logs/meal_order_server.log"
+      # 每个日志文件长度的最大大小，单位是 MiB。默认 100MiB
+      maxSize: 5
+      # 日志保留的最大天数(只保留最近多少天的日志)
+      maxAge: 30
+      # 只保留最近多少个日志文件，用于控制程序总日志的大小
+      maxBackups: 30
+      # 是否使用本地时间，默认使用 UTC 时间
+      localTime: true
+      # 是否压缩日志文件，压缩方法 gzip
+      compress: false
