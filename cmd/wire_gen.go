@@ -7,6 +7,8 @@
 package main
 
 import (
+	"github.com/oa-meeting/pkg/aliyun"
+	"github.com/oa-meeting/pkg/app"
 	"github.com/oa-meeting/pkg/cache"
 	"github.com/oa-meeting/pkg/db"
 	"github.com/oa-meeting/pkg/logger"
@@ -22,12 +24,13 @@ import (
 
 // Injectors from wire.go:
 
-func InitApp() (*App, error) {
+func InitApp() (*app.App, error) {
 	zapLogger := logger.ZapInit()
 	client := cache.NewRedis()
 	jaegerProvider := tracing.NewTracing()
-	gormDB := db.NewDb()
+	gormDB := db.NewMeeting()
 	node := snowf.NewSf()
-	app := NewApp(zapLogger, client, jaegerProvider, gormDB, node)
-	return app, nil
+	clientClient := aliyun.NewRtcClient()
+	appApp := NewApp(zapLogger, client, jaegerProvider, gormDB, node, clientClient)
+	return appApp, nil
 }

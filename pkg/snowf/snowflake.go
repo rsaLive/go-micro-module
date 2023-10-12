@@ -3,11 +3,11 @@ package snowf
 import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/wire"
+	"github.com/oa-meeting/pkg/app"
 	appConfig "github.com/oa-meeting/pkg/config"
 	"time"
 )
 
-var node *snowflake.Node
 var Provider = wire.NewSet(NewSf)
 
 func NewSf() *snowflake.Node {
@@ -18,9 +18,12 @@ func NewSf() *snowflake.Node {
 		panic(err)
 	}
 	snowflake.Epoch = st.UnixNano() / 1000000
-	node, err = snowflake.NewNode(int64(appConfig.Data.SnowFlake.NodeNum))
+	node, errS := snowflake.NewNode(int64(appConfig.Data.SnowFlake.NodeNum))
+	if errS != nil {
+		panic(errS)
+	}
 	return node
 }
 func GenID() int64 {
-	return node.Generate().Int64()
+	return app.ModuleClients.SfNode.Generate().Int64()
 }

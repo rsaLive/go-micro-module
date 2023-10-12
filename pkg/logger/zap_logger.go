@@ -11,8 +11,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var lg *zap.Logger
-
 var Provider = wire.NewSet(ZapInit)
 
 // ZapInit 初始化lg
@@ -36,7 +34,7 @@ func ZapInit() *zap.Logger {
 	} else {
 		core = zapcore.NewCore(encoder, writeSyncer, l)
 	}
-	lg = zap.New(core, zap.AddCaller())
+	lg := zap.New(core, zap.AddCaller())
 	zap.ReplaceGlobals(lg)
 	return lg
 }

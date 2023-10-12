@@ -6,20 +6,31 @@ import (
 	"github.com/oa-meeting/pkg/msg"
 	"github.com/spf13/viper"
 	"os"
+	"reflect"
+	"strings"
 )
 
 var Data = new(AppConfig)
 
 type AppConfig struct {
 	System struct {
-		Mode string
+		Mode         string
+		ConfigSource string `mapstructure:"config_source"`
 	}
-	MealOrder struct {
+	OaMeeting struct {
 		Host     string
 		Port     int32
 		User     string
 		Password string
 		DbName   string `mapstructure:"db_name"`
+	}
+	AliYun struct {
+		AccessKeyId     string `mapstructure:"access_key_id"`
+		AccessKeySecret string `mapstructure:"access_key_secret"`
+	}
+	AliYunRtc struct {
+		Appid  string `mapstructure:"appid"`
+		AppKey string `mapstructure:"app_key"`
 	}
 	Redis struct {
 		DB       int
@@ -47,24 +58,6 @@ type AppConfig struct {
 		Host     string `mapstructure:"host"`
 		Port     int32  `mapstructure:"port"`
 		Vhost    string `mapstructure:"vhost"`
-	}
-	WxMini struct {
-		AppId  string `mapstructure:"appid"`
-		Secret string `mapstructure:"secret"`
-	}
-	WxPay struct {
-		MchID                      string `mapstructure:"mchid"`
-		MchAPIv3Key                string `mapstructure:"apiv3key"`
-		MchCertificateSerialNumber string `mapstructure:"mch_certificate_serial_number"`
-		ApiClientCerPenPath        string `mapstructure:"api_client_cert_pem_path"`
-		NotifyUrl                  string `mapstructure:"notify_url"`
-	}
-	HttpServer struct {
-		AdminMainServer string `mapstructure:"admin_main_server"`
-		MinusAppoint    string `mapstructure:"minus_appoint"`
-	}
-	Feie struct {
-		Sn string `mapstructure:"sn"`
 	}
 }
 
@@ -96,12 +89,72 @@ func Viper(iniConf string) (err error) {
 	viper.SetConfigFile(iniConf)
 	err = viper.ReadInConfig()
 	if err != nil {
-		//panic("viper.ReadInConfig failed" + err.Error())
+		panic("viper.ReadInConfig failed" + err.Error())
 		return
 	}
 	if err = viper.Unmarshal(Data); err != nil {
-		//panic("viper.Unmarshal failed" + err.Error())
+		panic("viper.Unmarshal failed" + err.Error())
 		return
 	}
+	// 如果是configmap模式再修改
+	fmt.Println(Data.System)
+	if Data.System.ConfigSource == "configmap" {
+		traverseFields(reflect.ValueOf(*Data), "", Data)
+	}
 	return
+}
+func traverseFields(value reflect.Value, prefix string, configPtr interface{}) {
+	valueType := value.Type()
+	prefixEnv := "${"
+	suffixEnv := "}"
+	// 遍历结构体的字段
+	for i := 0; i < valueType.NumField(); i++ {
+		field := valueType.Field(i)
+		fieldValue := value.Field(i)
+		// 拼接字段名（带有前缀）
+		fieldName := prefix + field.Name
+		// 判断字段的类型
+		if fieldValue.Kind() == reflect.Struct {
+			// 递归遍历嵌套结构体字段
+			traverseFields(fieldValue, fieldName+".", configPtr)
+		} else {
+			// 获取字段的值
+			fieldValueStr := fmt.Sprintf("%v", fieldValue.Interface())
+			// 判断是不是需要通过环境变量获取
+			if len(fieldValueStr) > 3 && strings.HasPrefix(fieldValueStr, prefixEnv) && strings.HasSuffix(fieldValueStr, suffixEnv) {
+				end := len(fieldValueStr) - len(suffixEnv)
+				var hasDefault bool
+				if strings.Index(fieldValueStr, "|") > 0 {
+					hasDefault = true
+					end = strings.Index(fieldValueStr, "|")
+				}
+				envStr := fieldValueStr[len(prefixEnv):end]
+				getValue := os.Getenv(envStr)
+				if getValue == "" && hasDefault {
+					getValue = fieldValueStr[end+1 : len(fieldValueStr)-len(suffixEnv)]
+				}
+				setSubFieldValue(configPtr, fieldName, getValue)
+			}
+		}
+	}
+}
+
+func setSubFieldValue(configPtr interface{}, fieldPath string, newValue interface{}) {
+	value := reflect.ValueOf(configPtr).Elem()
+	fields := strings.Split(fieldPath, ".")
+	for _, field := range fields {
+		value = value.FieldByName(field)
+		if !value.IsValid() {
+			return // 字段不存在，直接返回
+		}
+		if value.Kind() == reflect.Ptr {
+			value = value.Elem() // 解引用指针类型的字段
+		}
+	}
+	// 检查字段是否可设置
+	if value.CanSet() {
+		// 根据字段类型，将新值转换为对应类型并设置字段的值
+		newValue := reflect.ValueOf(newValue).Convert(value.Type())
+		value.Set(newValue)
+	}
 }

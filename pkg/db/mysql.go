@@ -3,29 +3,15 @@ package db
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/google/wire"
-	appConfig "github.com/oa-meeting/pkg/config"
+	"github.com/oa-meeting/pkg/app"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
-
-var DbAccount, DbGoods, DbOrder, DbMysql *gorm.DB
-
-var Provider = wire.NewSet(NewDb)
-
-func NewDb() *gorm.DB {
-	connOrder := strings.Join([]string{appConfig.Data.MealOrder.User, ":", appConfig.Data.MealOrder.Password, "@tcp(", appConfig.Data.MealOrder.Host, ":", strconv.Itoa(int(appConfig.Data.MealOrder.Port)), ")/", appConfig.Data.MealOrder.DbName, "?charset=utf8mb4&parseTime=true"}, "")
-	DbOrder = loadMysqlConn(connOrder)
-	migration()
-	return DbMysql
-}
 
 func loadMysqlConn(conn string) *gorm.DB {
 	var ormLogger logger.Interface
@@ -58,21 +44,19 @@ func loadMysqlConn(conn string) *gorm.DB {
 	return db
 }
 
-// 执行数据迁移
-func migration() {
+func DBMigration() {
 	//addColumn(&model_account.Users{}, "action_code")
-	errOrder := DbOrder.AutoMigrate()
-
-	if errOrder != nil {
-		zap.L().Error("register table fail--", zap.Error(errOrder))
+	err := app.ModuleClients.DbMeeting.AutoMigrate()
+	if err != nil {
+		zap.L().Error("register table fail--", zap.Error(err))
 		os.Exit(0)
 	}
 }
 
 func addColumn(dst interface{}, column string) {
-	exist := DbAccount.Migrator().HasColumn(dst, column)
+	exist := app.ModuleClients.DbMeeting.Migrator().HasColumn(dst, column)
 	if !exist {
-		err := DbAccount.Migrator().AddColumn(dst, column)
+		err := app.ModuleClients.DbMeeting.Migrator().AddColumn(dst, column)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
