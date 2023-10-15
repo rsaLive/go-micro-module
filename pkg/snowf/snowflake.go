@@ -3,8 +3,8 @@ package snowf
 import (
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/wire"
+	appConfig "github.com/oa-meeting/config"
 	"github.com/oa-meeting/pkg/app"
-	appConfig "github.com/oa-meeting/pkg/config"
 	"time"
 )
 

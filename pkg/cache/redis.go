@@ -4,7 +4,7 @@ import (
 	"github.com/dubbogo/gost/log/logger"
 	"github.com/go-redis/redis"
 	"github.com/google/wire"
-	appConfig "github.com/oa-meeting/pkg/config"
+	appConfig "github.com/oa-meeting/config"
 )
 
 var RedisProvider = wire.NewSet(NewRedis)

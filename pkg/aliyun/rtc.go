@@ -5,7 +5,7 @@ import (
 	rtcv2 "github.com/alibabacloud-go/rtc-20180111/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/google/wire"
-	appConfig "github.com/oa-meeting/pkg/config"
+	appConfig "github.com/oa-meeting/config"
 )
 
 var RtcProvider = wire.NewSet(NewRtcClient)

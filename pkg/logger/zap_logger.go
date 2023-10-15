@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 	"os"
 
-	appConfig "github.com/oa-meeting/pkg/config"
+	appConfig "github.com/oa-meeting/config"
 
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"

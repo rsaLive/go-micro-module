@@ -2,7 +2,7 @@ package db
 
 import (
 	"github.com/google/wire"
-	appConfig "github.com/oa-meeting/pkg/config"
+	appConfig "github.com/oa-meeting/config"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/wire"
-	appConfig "github.com/oa-meeting/pkg/config"
+	appConfig "github.com/oa-meeting/config"
 	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go"
 	jaegerConfig "github.com/uber/jaeger-client-go/config"

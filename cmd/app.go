@@ -7,10 +7,9 @@ import (
 	rtcv2 "github.com/alibabacloud-go/rtc-20180111/v2/client"
 	"github.com/bwmarrin/snowflake"
 	"github.com/go-redis/redis"
-	"github.com/oa-meeting/internal/controller"
+	appConfig "github.com/oa-meeting/config"
 	_ "github.com/oa-meeting/internal/handler"
 	"github.com/oa-meeting/pkg/app"
-	appConfig "github.com/oa-meeting/pkg/config"
 	common "github.com/oa-meeting/pkg/init"
 	"github.com/oa-meeting/pkg/tracing"
 	"go.uber.org/zap"
@@ -36,7 +35,7 @@ func main() {
 		panic(err)
 	}
 	//注册服务
-	config.SetProviderService(&controller.MeetingProvider{})
+	//config.SetProviderService(&controller.MeetingProvider{})
 	common.Init()
 	if err = config.Load(); err != nil {
 		panic(err)
