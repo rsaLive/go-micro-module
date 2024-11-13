@@ -17,21 +17,6 @@ type AppConfig struct {
 		Mode         string
 		ConfigSource string `mapstructure:"config_source"`
 	}
-	OaMeeting struct {
-		Host     string
-		Port     int32
-		User     string
-		Password string
-		DbName   string `mapstructure:"db_name"`
-	}
-	AliYun struct {
-		AccessKeyId     string `mapstructure:"access_key_id"`
-		AccessKeySecret string `mapstructure:"access_key_secret"`
-	}
-	AliYunRtc struct {
-		Appid  string `mapstructure:"appid"`
-		AppKey string `mapstructure:"app_key"`
-	}
 	Redis struct {
 		DB       int
 		Addr     string

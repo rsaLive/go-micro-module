@@ -1,0 +1,14 @@
+system:
+  mode: dev
+  config_source: file
+oa_meeting:
+    user: root
+    password: 123456
+    host: 127.0.0.1
+    port: 3306
+    db_name: oa_meeting
+redis:
+    db: 0
+    addr: 127.0.0.1:6379
+    password: 123456
+    mode: single
